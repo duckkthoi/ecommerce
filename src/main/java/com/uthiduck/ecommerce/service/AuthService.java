@@ -1,4 +1,8 @@
 package com.uthiduck.ecommerce.service;
 
-public class AuthService {
+import com.uthiduck.ecommerce.response.SignupRequest;
+
+public interface AuthService {
+
+    String createUser(SignupRequest req);
 }

@@ -1,8 +1,11 @@
 package com.uthiduck.ecommerce.controller;
 
+import com.uthiduck.ecommerce.domain.USER_ROLE;
 import com.uthiduck.ecommerce.modal.User;
 import com.uthiduck.ecommerce.repository.UserRepository;
+import com.uthiduck.ecommerce.response.AuthResponse;
 import com.uthiduck.ecommerce.response.SignupRequest;
+import com.uthiduck.ecommerce.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +16,16 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final AuthService authService;
     @PostMapping("/signup")
-    public ResponseEntity<User> createUserHandler(@RequestBody SignupRequest req){
-        User user = new User();
-        user.setEmail(req.getEmail());
-        user.setFullName(req.getFullName());
+    public ResponseEntity<AuthResponse> createUserHandler(@RequestBody SignupRequest req){
+        String jwt = authService.createUser(req);
 
-        User savedUser = userRepository.save(user);
+        AuthResponse res = new AuthResponse();
+        res.setJwt(jwt);
+        res.setMessage("register success");
+        res.setRole(USER_ROLE.ROLE_CUSTOMER);
 
-        return ResponseEntity.ok(savedUser);
+        return ResponseEntity.ok(res);
     }
 }
