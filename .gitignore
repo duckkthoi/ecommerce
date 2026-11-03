@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 src/main/java/com/uthiduck/ecommerce/config/JWT_CONSTANT.java
+src/main/resources/application.properties
