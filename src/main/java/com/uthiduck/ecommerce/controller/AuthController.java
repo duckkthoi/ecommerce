@@ -4,6 +4,8 @@ import com.uthiduck.ecommerce.domain.USER_ROLE;
 import com.uthiduck.ecommerce.modal.User;
 import com.uthiduck.ecommerce.modal.VerificationCode;
 import com.uthiduck.ecommerce.repository.UserRepository;
+import com.uthiduck.ecommerce.request.LoginOtpRequest;
+import com.uthiduck.ecommerce.request.LoginRequest;
 import com.uthiduck.ecommerce.response.ApiResponse;
 import com.uthiduck.ecommerce.response.AuthResponse;
 import com.uthiduck.ecommerce.response.SignupRequest;
@@ -33,14 +35,22 @@ public class AuthController {
     }
 
     @PostMapping("/sent/login-signup-otp")
-    public ResponseEntity<ApiResponse> sentOtpHandler(@RequestBody VerificationCode req) throws Exception {
+    public ResponseEntity<ApiResponse> sentOtpHandler(@RequestBody LoginOtpRequest req) throws Exception {
 
-        authService.sentLoginOtp(req.getEmail());
+        authService.sentLoginOtp(req.getEmail(), req.getRole());
 
         ApiResponse res = new ApiResponse();
 
         res.setMessage("otp sent successfully");
 
         return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/signing")
+    public ResponseEntity<AuthResponse> loginHandler(@RequestBody LoginRequest req) throws Exception {
+
+        AuthResponse authResponse = authService.signing(req);
+
+        return ResponseEntity.ok(authResponse);
     }
 }
