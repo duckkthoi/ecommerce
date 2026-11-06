@@ -1,27 +1,32 @@
 package com.uthiduck.ecommerce.controller;
 
+import com.uthiduck.ecommerce.domain.AccountStatus;
+import com.uthiduck.ecommerce.modal.Seller;
 import com.uthiduck.ecommerce.modal.VerificationCode;
 import com.uthiduck.ecommerce.repository.VerificationCodeRepository;
 import com.uthiduck.ecommerce.request.LoginRequest;
 import com.uthiduck.ecommerce.response.ApiResponse;
 import com.uthiduck.ecommerce.response.AuthResponse;
 import com.uthiduck.ecommerce.service.AuthService;
+import com.uthiduck.ecommerce.service.EmailService;
 import com.uthiduck.ecommerce.service.SellerService;
+import com.uthiduck.ecommerce.utils.OtpUtil;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/seller")
+@RequestMapping("/sellers")
 public class SellerController {
     private final SellerService sellerService;
     private final VerificationCodeRepository verificationCodeRepository;
     private final AuthService authService;
-
+    private final EmailService emailService;
 
 
     @PostMapping("/login")
@@ -37,5 +42,71 @@ public class SellerController {
 
         return ResponseEntity.ok(authResponse);
     }
+    @PatchMapping("/verify/{otp}")
+    public ResponseEntity<Seller> verifySellerEmail(@PathVariable String otp) throws Exception{
+        VerificationCode verificationCode = verificationCodeRepository.findByOtp(otp);
 
+        if(verificationCode == null || !verificationCode.getOtp().equals(otp)){
+            throw new Exception("wrong otp...");
+        }
+
+        Seller seller = sellerService.verifyEmail(verificationCode.getEmail(), otp);
+
+        return new ResponseEntity<>(seller, HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<Seller> createSeller(
+            @RequestBody Seller seller) throws Exception, MessagingException{
+        Seller savedSeller = sellerService.createSeller(seller);
+
+        String otp = OtpUtil.generateOtp();
+
+        VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setOtp(otp);
+        verificationCode.setEmail(seller.getEmail());
+        verificationCodeRepository.save(verificationCode);
+
+        String subject = "ducminhpham Email Verification Code";
+        String text = "Welcome to ducminhpham, verify your account using this link ";
+        String frontend_url = "https://localhost:3000/verify-seller/";
+        emailService.sendVerificationOtpEmail(seller.getEmail(), verificationCode.getOtp(), subject, text + frontend_url);
+        return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception{
+        Seller seller = sellerService.getSellerById(id);
+        return new ResponseEntity<>(seller, HttpStatus.OK);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<Seller> getSellerByJwt(
+            @RequestHeader("Authorization") String jwt
+    ) throws Exception{
+        Seller seller = sellerService.getSellerProfile(jwt);
+        return new ResponseEntity<>(seller, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Seller>> getAllSellers(
+            @RequestParam(required = false)AccountStatus status
+            ){
+        List<Seller> sellers = sellerService.getAllSellers(status);
+        return ResponseEntity.ok(sellers);
+    }
+
+    @PatchMapping
+    public ResponseEntity<Seller> updateSeller(
+            @RequestHeader("Authorization") String jwt, @RequestBody Seller seller) throws Exception{
+        Seller profile = sellerService.getSellerProfile(jwt);
+        Seller updateSeller = sellerService.updateSeller(profile.getId(), seller);
+        return ResponseEntity.ok(updateSeller);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSeller(@PathVariable Long id) throws Exception{
+        sellerService.deleteAeller(id);
+        return ResponseEntity.noContent().build();
+    }
 }
