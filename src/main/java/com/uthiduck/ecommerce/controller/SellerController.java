@@ -1,6 +1,7 @@
 package com.uthiduck.ecommerce.controller;
 
 import com.uthiduck.ecommerce.domain.AccountStatus;
+import com.uthiduck.ecommerce.exceptions.SellerException;
 import com.uthiduck.ecommerce.modal.Seller;
 import com.uthiduck.ecommerce.modal.VerificationCode;
 import com.uthiduck.ecommerce.repository.VerificationCodeRepository;
@@ -75,7 +76,7 @@ public class SellerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception{
+    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws SellerException {
         Seller seller = sellerService.getSellerById(id);
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
@@ -106,7 +107,7 @@ public class SellerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSeller(@PathVariable Long id) throws Exception{
-        sellerService.deleteAeller(id);
+        sellerService.deleteSeller(id);
         return ResponseEntity.noContent().build();
     }
 }

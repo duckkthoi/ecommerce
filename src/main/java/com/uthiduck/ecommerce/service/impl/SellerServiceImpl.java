@@ -3,6 +3,7 @@ package com.uthiduck.ecommerce.service.impl;
 import com.uthiduck.ecommerce.config.JwtProvider;
 import com.uthiduck.ecommerce.domain.AccountStatus;
 import com.uthiduck.ecommerce.domain.USER_ROLE;
+import com.uthiduck.ecommerce.exceptions.SellerException;
 import com.uthiduck.ecommerce.modal.Address;
 import com.uthiduck.ecommerce.modal.Seller;
 import com.uthiduck.ecommerce.repository.AddressRepository;
@@ -52,8 +53,8 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller getSellerById(Long id) throws Exception {
-        return sellerRepository.findById(id).orElseThrow(()->new Exception("seller not found with id" + id));
+    public Seller getSellerById(Long id) throws SellerException {
+        return sellerRepository.findById(id).orElseThrow(()->new SellerException("seller not found with id" + id));
     }
 
     @Override
@@ -111,7 +112,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public void deleteAeller(Long id) throws Exception {
+    public void deleteSeller(Long id) throws Exception {
 
         Seller seller = getSellerById(id);
         sellerRepository.delete(seller);
